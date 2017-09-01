@@ -1,0 +1,108 @@
+apply plugin: 'com.android.application'
+
+def releaseTime() {
+    return new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("GMT+08:00"))
+}
+
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion "26.0.1"
+    defaultConfig {
+        applicationId "meahu.com.teamcity"
+        minSdkVersion 14
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+    packagingOptions {
+        exclude 'AndroidManifest.xml'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'pom.properties'
+    }
+    signingConfigs {
+        release {
+            storeFile file('xiaobai.keystore')
+            storePassword 'xiaobai0824'
+            keyAlias 'xiaobai'
+            keyPassword 'xiaobai0824'
+        }
+    }
+
+
+
+
+
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            jniDebuggable false
+            debuggable false
+            //代码混淆开关，一定要注意现在已经使用minifyEnabled代替runProguard了
+            minifyEnabled false
+            shrinkResources true
+            zipAlignEnabled true
+            shrinkResources false
+            proguardFile 'proguard-project.txt'
+            applicationVariants.all { variant ->
+                variant.outputs.each { output ->
+                    def apk = output.outputFile
+                    if (apk != null && apk.name.endsWith('.apk')) {
+                        def fileName = "kangxiaobai_v${defaultConfig.versionName}_${releaseTime()}_${variant.productFlavors[0].name}.apk"
+                        output.outputFile = new File(apk.parent + "/package", fileName)
+                    }
+                }
+            }
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    // 友盟多渠道打包
+    productFlavors {
+        Official {}
+        SanLiuLing {}
+        HuaWei {}
+        Baidu {}
+        NineOneMarket {}
+        AnzhuoShiChang {}
+        YingYongBao {}
+        WanDouJia {}
+        Xiaomi {}
+        MeiZu {}
+        LeShangdian {}
+        Anzhi {}
+        TaoBao {}
+        ZhongYiDong {}
+        Others {}
+    }
+
+
+    productFlavors.all { flavor ->
+        flavor.manifestPlaceholders = [UMENG_CHANNEL_VALUE: name]
+    }
+
+    dexOptions {
+        incremental false
+        javaMaxHeapSize "1g"
+    }
+
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:26.+'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    testCompile 'junit:junit:4.12'
+}
